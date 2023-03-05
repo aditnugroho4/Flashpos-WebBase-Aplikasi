@@ -1,0 +1,332 @@
+<?php if ( ! defined('BASEPATH')) exit('No direct script access allowed');?>
+<script type="text/javascript">
+String.prototype.replaceAll = function(str1, str2, ignore) {
+    return this.replace(new RegExp(str1.replace(/([\/\,\!\\\^\$\{\}\[\]\(\)\.\*\+\?\|\<\>\-\&])/g, "\\$&"), (
+        ignore ? "gi" : "g")), (typeof(str2) == "string") ? str2.replace(/\$/g, "$$$$") : str2);
+};
+var selectedId;
+var seoId;
+var fildeselect;
+var active;
+var tables;
+var Edit = false;
+$(document).ready(function() {
+    $('.mn-4').addClass('bg-success');
+
+    $("#tblData").dataTable({
+        "bJQueryUI": true,
+        "bAutoWidth": true,
+        // "bProcessing": true,
+        "iDisplayLength": 15,
+        "aLengthMenu": [15, 50, 100, 200],
+        "bServerSide": true,
+        "sPaginationType": "full_numbers",
+        "sAjaxSource": "<?php echo site_url('admin/get_data_table_source'); ?>?table=w_post_apps&columns=,menu,id",
+        "aoColumns": [{
+                "sTitle": "#",
+                "mData": "no",
+                "bSortable": false,
+                "sClass": "center"
+            },
+            {
+                "sTitle": "Nama Aplikasi",
+                "mData": "nama",
+                "sClass": "center",
+                "fnCreatedCell": function(nTd, sData, oData, iRow, iCol) {
+                    var id = "nama-" + oData.id;
+                    $(nTd).attr("id", id);
+                    $(nTd).editable(
+                        "<?php echo site_url('admin/update_grid/w_post_apps'); ?>", {
+                            "callback": function(sValue, y) {
+                                /* Redraw the table from the new data on the server */
+                                $("#tblData").dataTable().fnDraw();
+                            }
+                        });
+                }
+            },
+            {
+                "sTitle": "Deskripsi",
+                "mData": "deskripsi",
+                "fnCreatedCell": function(nTd, sData, oData, iRow, iCol) {
+                    var id = "deskripsi-" + oData.id;
+                    $(nTd).attr("id", id);
+                }
+            },
+            {
+                "sTitle": "URL",
+                "mData": "url",
+                "fnCreatedCell": function(nTd, sData, oData, iRow, iCol) {
+                    var id = "url-" + oData.id;
+                    $(nTd).attr("id", id);
+                    $(nTd).editable(
+                        "<?php echo site_url('admin/update_grid/w_post_apps'); ?>", {
+                            "callback": function(sValue, y) {
+                                /* Redraw the table from the new data on the server */
+                                $("#tblData").dataTable().fnDraw();
+                            }
+                        });
+                }
+            },
+            {
+                "sTitle": "Icon",
+                "mData": "icon",
+                "fnCreatedCell": function(nTd, sData, oData, iRow, iCol) {
+                    var id = "icon-" + oData.id;
+                    $(nTd).attr("id", id);
+                    $(nTd).editable(
+                        "<?php echo site_url('admin/update_grid/w_post_apps'); ?>", {
+                            "callback": function(sValue, y) {
+                                /* Redraw the table from the new data on the server */
+                                $("#tblData").dataTable().fnDraw();
+                            }
+                        });
+                }
+            },
+            {
+                "sTitle": "Status",
+                "sClass": "text-center",
+                "mData": "status",
+                "bSortable": false,
+                "fnCreatedCell": function(nTd, sData, oData, iRow, iCol) {
+                    if (oData.status == 'Y') {
+                        htmlx =
+                            "<button class='btn btn-xs bg-green'><i class='fas fa-check'></i></button>";
+                        $(nTd).html(htmlx);
+                        $($(nTd).children()[0]).button().click(function() {
+                            var id = "status-" + oData.id;
+                            $(nTd).attr("id", id);
+                            selectedId = oData.id;
+                            fildeselect = "status";
+                            active = 'N';
+                            $("#txtMessage").html(
+                                "Status akan di Ubah Menjadi Non aktif..?");
+                            $("#dlg-edit-status").modal("show");
+                        });
+                        $($(nTd).children()[0]).find("span").css("padding", "2px 2px");
+                    } else if (oData.status == 'N' || oData.status == null) {
+                        htmlx =
+                            "<button class='btn btn-xs bg-danger'><i class='fa fa-ban'></i></button>";
+                        $(nTd).html(htmlx);
+                        $($(nTd).children()[0]).button().click(function() {
+                            var id = "status-" + oData.id;
+                            $(nTd).attr("id", id);
+                            fildeselect = "status";
+                            selectedId = oData.id;
+                            active = 'Y';
+                            $("#txtMessage").html(
+                                "Status akan di Ubah Menjadi aktif..?");
+                            $("#dlg-edit-status").modal("show");
+                        });
+                    }
+                }
+            },
+            {
+                "sTitle": "Action",
+                "sClass": "text-center",
+                "mData": "id",
+                "bSortable": false,
+                "fnCreatedCell": function(nTd, sData, oData, iRow, iCol) {
+                    $(nTd).html(
+                        "<button class='btn btn-xs bg-red'><i class='fas fa-pencil'> Edit</i></button>"
+                    );
+                    $($(nTd).children()[0]).button().click(function() {
+                        selectedId = oData.id;
+                        $("#txtMenu_e").val(oData.nama);
+                        Edit = true;
+                        seoId = oData.seoId;
+                        $('#frm-edit-menu').modal('show');
+                    });
+                }
+            }
+        ]
+    });
+    $("#btnAdd").button().click(function() {
+        $('#frm-add-menu').modal('show');
+        $('#save-data')[0].reset();
+        $('#txtKeyword').tagsinput({
+            tagClass: 'badge bg-info',
+            maxChars: 500
+        });
+    });
+    $("#save-data").submit(function(e) {
+        e.preventDefault();
+        if ($('#save-data').valid()) {
+            $('.load-ding-add').append(
+                '<div class="overlay text-center"><i class="fas fa-2x fa-sync-alt fa-spin"></i></div>'
+            );
+            $.ajax({
+                type: "POST",
+                dataType: 'json',
+                url: "<?php echo site_url('admin/create/w_post_apps'); ?>",
+                data: {
+                    nama: $("#txtMenu").val(),
+                    deskripsi: $("#txtDeskripsi").val(),
+                    icon: $("#txtIcons").val(),
+                    url: $("#txtURL").val(),
+                    status: 'N',
+                    date: $date
+                },
+                success: function(msg) {
+                    var title = "Info";
+                    var label = "Menyimpan Data";
+                    var message = " Data Table berhasil di Simpan.";
+                    $('#save-data')[0].reset();
+                    alert_info(title, label, message);
+                    $("#tblData").dataTable().fnDraw();
+                    $('.load-ding-add').find('.overlay').remove();
+                    $("#frm-add-menu").modal("hide");
+                }
+            });
+        }
+    });
+    $("#btnReload").button().click(function() {
+        $("#tblData").dataTable().fnDraw();
+        var title = "Reload..";
+        var label = "Data Table..";
+        var message = " Data Table berhasil di Refresh..";
+        alert_info(title, label, message);
+    });
+    $("#edit-data").submit(function(e) {
+        e.preventDefault();
+        if ($('#edit-data').valid()) {
+            var parsings = $("#txtTitle_e").val();
+            parsings = parsings.replaceAll(".", "-");
+            parsings = parsings.replaceAll("&", "dan");
+            parsings = parsings.replaceAll("|", "-");
+            $('.load-ding-edit').append(
+                '<div class="overlay text-center"><i class="fas fa-2x fa-sync-alt fa-spin"></i></div>'
+            );
+            $.ajax({
+                type: "POST",
+                url: "<?php echo site_url('admin/update/w_post_apps'); ?>",
+                data: {
+                    id: selectedId,
+                    nama: $("#txtMenu_e").val(),
+                    link_id: seoId,
+                    date: $date
+                },
+                success: function(msg) {
+                    if (msg) {
+                        $.ajax({
+                            type: "POST",
+                            url: "<?php echo site_url('admin/update/m_seo'); ?>",
+                            data: {
+                                id: seoId,
+                                title: $("#txtTitle_e").val(),
+                                deskripsi: $("#txtDeskripsi_e").val(),
+                                keyword: $("#txtKeyword_e").val(),
+                                icon: $("#txtImg_e").val(),
+                                author: $("#txtAuthor_e").val(),
+                                short_link: parsings,
+                                date: $date
+                            },
+                            success: function(msg) {
+                                if (msg) {
+                                    $("#tblData").dataTable().fnDraw();
+                                    $('.load-ding-edit').find('.overlay')
+                                        .remove();
+                                    $('#edit-data')[0].reset();
+                                    var title = "Edit";
+                                    var label = "Data Table..";
+                                    var message =
+                                        " Data Table berhasil di Update..";
+                                    alert_info(title, label, message);
+                                    $("#frm-edit-menu").modal("hide");
+                                } else {
+                                    $("#tblData").dataTable().fnDraw();
+                                    $('.load-ding-edit').find('.overlay')
+                                        .remove();
+                                    var title = "Edit";
+                                    var label = "Data Table..";
+                                    var message =
+                                        " Data Table Gagal di Update..";
+                                    alert_warning(title, label, message);
+                                    $("#frm-edit-menu").modal("hide");
+                                }
+                                Edit = false;
+                            }
+                        });
+                    }
+                }
+            });
+        }
+    });
+    $('#btn-prosess').button().click(function() {
+        $.ajax({
+            type: "POST",
+            dataType: 'json',
+            url: "<?php echo site_url('admin/aktive/w_post_apps/status'); ?>/" + selectedId +
+                "/" + active,
+            success: function(msg) {
+                if (msg.error == false) {
+                    $("#tblData").dataTable().fnDraw();
+                    $.swalDefaultAlert("error: " + msg.error + "<br> Code: " + msg.code +
+                        " <br> message: " + msg.message, 'success');
+                } else {
+                    $.swalDefaultAlert("error: " + msg.error + "<br> Code: " + msg.code +
+                        " <br> message: " + msg.message, 'warning');
+                }
+                $("#dlg-edit-status").modal("hide");
+            }
+        });
+    });
+    /* 
+    	Fungsi Pilih Gambar 
+    */
+    $.search_img = function() {
+        $('#frm-find-img').modal('show');
+        $("#cmbImg").empty();
+        $.ajax({
+            type: "POST",
+            dataType: 'json',
+            url: "<?php echo site_url('admin/multi_select');?>?table=w_post_images",
+            success: function(data) {
+                if (data == '') {
+                    $("#cmbImg").append("<option value=''> -- No Result -- </option>");
+                } else {
+                    for (var i = 0; i < data.length; i++) {
+                        $("#cmbImg").append("<option value='" + data[i].id +
+                            "' data-img_src='<?=base_url()?>" + data[i].img + "' name='" +
+                            data[i].img + "'>" + data[i].name + "</option>");
+                    }
+                }
+            }
+        });
+    }
+    /* Fungsi Nyisipin Objek Ke Dropdown Gyus.. */
+    function drp_template(obj) {
+        var data = $(obj.element).data();
+        var text = $(obj.element).text();
+        if (data && data['img_src']) {
+            img_src = data['img_src'];
+            template = $("<div class='row'><img class='img-thumbnail img-md col-4' src='" + img_src +
+                "'/><label class='col-8'>" + text + "</label></div>");
+            return template;
+        }
+    }
+    var options = {
+        'templateSelection': drp_template,
+        'templateResult': drp_template,
+    }
+    $('#cmbImg').select2(options);
+    $('.select2').css({
+        'width': '100%'
+    });
+    $('.select2-container--default .select2-selection--single').css({
+        'height': '80px'
+    });
+    $("#cmbImg").change(function() {
+        var img = $("#cmbImg option:selected").attr('name');
+        if (Edit == true) {
+            $("#txtImg_e").val(img);
+            $("#txtImg_e").attr('disabled', 'disabled');
+            $("#txtImg_e").val(img);
+        } else {
+            $("#txtImg").val(img);
+            $("#txtImg").attr('disabled', 'disabled');
+            $("#txtImg").val(img);
+        }
+    });
+    /* Function End */
+});
+</script>

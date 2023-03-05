@@ -1,0 +1,11 @@
+
+# DO NOT REMOVE THIS LINE AND THE LINES BELLOW SSL_REDIRECT:akbargrup.id
+RewriteEngine on
+RewriteCond %{HTTPS} off
+RewriteCond %{HTTP_HOST} (www\.)?akbargrup.id
+RewriteRule (.*) https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+RewriteCond $1 !^(index\.php|css|woff|eot|ttf|svg|css|js|resources|robots\.txt)
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ index.php/$1 [L,QSA]
+# DO NOT REMOVE THIS LINE AND THE LINES BELLOW SSL_REDIRECT:akbargrup.id

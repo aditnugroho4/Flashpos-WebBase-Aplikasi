@@ -1,0 +1,34 @@
+User-Agent: *
+Allow: /ads/preferences/
+Allow: /gpt/
+Allow: /pagead/show_ads.js
+Allow: /pagead/js/adsbygoogle.js
+Allow: /pagead/js/*/show_ads_impl.js
+Allow: /static/glade.js
+Allow: /static/glade/
+Allow: /tag/js/
+Allow: /asset/portal/*.css
+Allow: /asset/admin/plugins/chat-room/css/*.css
+
+# disallow all files in these directories
+
+Disallow: /vocal/
+Disallow: /system/
+Disallow: /asset/admin/
+Disallow: /asset/images/
+Disallow: /asset/admin/dist/
+Disallow: /asset/admin/plugins/
+Disallow: /asset/admin/images/
+Disallow: /application/views/admin/
+Disallow: /application/views/errors/
+Disallow: /application/config/
+Disallow: /application/controllers/
+Disallow: /application/helpers/
+Disallow: /application/libraries/
+Disallow: /application/models/
+Disallow: /application/portal/view/layout/chat.php
+Disallow: /*.css
+Disallow: /*.js
+
+
+Sitemap: https://rsudleuwiliang.id/sitemap.xml
